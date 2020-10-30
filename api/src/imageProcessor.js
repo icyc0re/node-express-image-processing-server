@@ -28,18 +28,6 @@ function imageProcessor(filename) {
                     destination: resizedDestination
                 }
             });
-            resizeWorker.on('message', message => {
-                resizeWorkerFinished = true;
-                if (monochromeWorkerFinished) {
-                    resolve('resizeWorker finished processing');
-                }
-            }).on('error', err => {
-                reject(new Error(err.message));
-            }).on('exit', code => {
-                if (code !== 0) {
-                    reject(new Error('Exited with status code ' + code));
-                }
-            });
 
             const monochromeWorker = new Worker(pathToMonochromeWorker, {
                 workerData: {
@@ -47,14 +35,32 @@ function imageProcessor(filename) {
                     destination: monochromeDestination
                 }
             });
+
+            resizeWorker.on('message', message => {
+                resizeWorkerFinished = true;
+                if (monochromeWorkerFinished) {
+                    resolve('resizeWorker finished processing');
+                }
+            });
+            resizeWorker.on('error', err => {
+                reject(new Error(err.message));
+            });
+            resizeWorker.on('exit', code => {
+                if (code !== 0) {
+                    reject(new Error('Exited with status code ' + code));
+                }
+            });
+
             monochromeWorker.on('message', message => {
                 monochromeWorkerFinished = true;
                 if (resizeWorkerFinished) {
                     resolve('monochromeWorker finished processing');
                 }
-            }).on('error', err => {
+            });
+            monochromeWorker.on('error', err => {
                 reject(new Error(err.message));
-            }).on('exit', code => {
+            });
+            monochromeWorker.on('exit', code => {
                 if (code !== 0) {
                     reject(new Error('Exited with status code ' + code));
                 }
