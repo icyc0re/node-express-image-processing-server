@@ -15,8 +15,6 @@ const upload = multer({ fileFilter, storage });
 router.post('/upload', upload.single('photo'), async (request, response) => {
     if (request.hasOwnProperty('fileValidationError')) {
         response.status(400).json({ error: request.fileValidationError });
-    } else {
-        response.status(201).json({ success: true });
     }
 
     try {
@@ -24,6 +22,8 @@ router.post('/upload', upload.single('photo'), async (request, response) => {
     } catch (err) {
         console.warn(err.message);
     }
+
+    response.status(201).json({ success: true });
 });
 
 router.get('/photo-viewer', (request, response) => {
